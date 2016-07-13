@@ -1,5 +1,7 @@
 web:
   build: .
+  environment:
+    - SECRET_KEY
   labels:
     - convox.port.443.protocol=tls
     - convox.port.443.proxy=true
