@@ -39,7 +39,7 @@ Starting from the `convox/django` image, the [generated Dockerfile](https://gith
 
 ### docker-compose.yml
 
-The [docker-compose.yml](https://github.com/convox-examples/django/blob/master/docker-compose.yml) file explains how to run the containers that make up your app. This generated file describes a `web` container which will be your main Django web process. The various sections of the `web` configuration are described below:
+The [docker-compose.yml](https://github.com/convox-examples/django/blob/master/docker-compose.yml) file explains how to run the containers that make up your app. This generated file describes a `web` service from which your main Django web containers will be created. The various sections of the `web` service configuration are described below:
 
 #### build
 
@@ -47,7 +47,7 @@ The [docker-compose.yml](https://github.com/convox-examples/django/blob/master/d
 build: .
 ```
 
-This entry declares that the web container should use an image built from the top level of your project directory using the Dockerfile found there.
+This entry declares that the `web` container(s) should use an image built from the Dockerfile in the root (`.`) of your project directory.
 
 #### labels
 
@@ -73,7 +73,7 @@ ports:
   - 443:4001
 ```
 
-The ports section lets you declare a mapping of ports outside the container to those inside the container. In this case, the container listens on ports 80 and 443 for http and https traffic. These requests get routed to ports 4000 and 4001 inside the container. In this example, nginx is configured (see the relevant [nginx.conf](https://github.com/convox/django/blob/master/conf/nginx.conf)) to listen on ports 4000 and 4001.
+The ports section lets you declare a mapping of ports of the host to those inside the container. In this case, the container listens on ports 80 and 443 for http and https traffic. These requests get routed to ports 4000 and 4001 inside the container. In this example, nginx is configured (see the relevant [nginx.conf](https://github.com/convox/django/blob/master/conf/nginx.conf)) to listen on ports 4000 and 4001.
 
 ### .dockerignore
 
@@ -93,11 +93,11 @@ We'll get to how Convox sets `DATABASE_URL` [later](#link-database-to-web). For 
 
 By [replacing](https://github.com/convox-examples/django/commit/7537b7744cf5f3ae639a405fe97799cdfa17f9c0) the default SQLite database settings with a call to `dj_database_url.config`, we tell Django that it can connect to its new 'default' PostgreSQL database by using parameters derived from the `DATABASE_URL` set by Convox.
 
-### Add a database container
+### Add a database service
 
 We want to run a Postgres container for local development, so the next step is to [add](https://github.com/convox-examples/django/commit/7537b7744cf5f3ae639a405fe97799cdfa17f9c0) it to `docker-compose.yml`.
 
-We define a new process called `database`, and use the `convox/postgres` image:
+We define a service called `database`, and use the `convox/postgres` image:
 
 ```yaml
 database:
@@ -110,7 +110,7 @@ We want the database to listen for connections on port 5432. When we deploy this
 
 ### Link database to web
 
-Lastly, we need to link the database container to the web container. We do this by adding a `links` section to `web`:
+Lastly, we need to link the database container to the web container. We do this by adding a `links` section to the `web` service definition:
 
 ```yaml
 links:
@@ -119,7 +119,7 @@ links:
 
 This will cause a `DATABASE_URL` environment variable to be injected into the `web` environment, which it will use to connect to the database. You can read more about container linking [here](https://convox.com/docs/linking/).
 
-A linked container works well for local development. However, when you deploy this app, you'll want a "real" Postgres. To accomplish this you can provision a hosted Postgres instance via [convox services](https://convox.com/docs/postgresql/), [scale](https://convox.com/docs/scaling/) your `database` process count in your app to 0, and set the DATABASE_URL [environment variable](https://convox.com/docs/environment/) to point to the hosted Postgres.
+A linked container works well for local development. However, when you deploy this app, you'll want a "real" Postgres. To accomplish this you can provision a hosted Postgres instance via [convox services](https://convox.com/docs/postgresql/), [scale](https://convox.com/docs/scaling/) your `database` container count in your app to 0, and set the DATABASE_URL [environment variable](https://convox.com/docs/environment/) to point to the hosted Postgres.
 
 ## Running the app Locally
 
